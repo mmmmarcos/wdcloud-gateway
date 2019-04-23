@@ -1,0 +1,93 @@
+spring:
+  application:
+    name: wdcloud-gateway
+  main:
+    allow-bean-definition-overriding: true
+  profiles:
+    active: @spring.active@
+  cloud:
+    config:
+      profile: @spring.active@
+      label: master
+
+---
+
+spring:
+  profiles: local
+  cloud:
+    zookeeper:
+      enabled: true
+      connect-string: 192.168.15.21:2181
+server:
+  port: 18091
+dubbo:
+  registry:
+    address: zookeeper://192.168.15.21:2181
+    protocol: zookeeper
+  provider:
+    register: true
+feign:
+  hystrix:
+    enabled: false
+  client:
+    config:
+      default:
+        connectTimeout: 300  #创建连接的超时时间 单位：毫秒
+        readTimeout: 5000    #处理请求的超时时间 单位：毫秒
+  compression: #对请求与响应进行GZIP压缩
+    request:
+      enabled: true
+    response:
+      enabled: true
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          strategy: SEMAPHORE
+          thread:
+            timeoutInMilliseconds: 3000
+
+ribbon:
+  ReadTimeout: 5000
+  ConnectTimeout: 3000
+  MaxAutoRetries: 1 #同一台实例最大重试次数,不包括首次调用
+  MaxAutoRetriesNextServer: 1 #重试负载均衡其他的实例最大重试次数,不包括首次调用
+  OkToRetryOnAllOperations: false  #是否所有操作都重试
+---
+
+spring:
+  profiles: dev
+  cloud:
+    nacos:
+      config:
+        server-addr: 192.168.15.21:8848
+        file-extension: yml
+dubbo:
+  registry:
+    address: zookeeper://192.168.15.21:2181
+---
+
+spring:
+  profiles: test
+  cloud:
+    nacos:
+      config:
+        server-addr: 47.105.238.105:8848
+        file-extension: yml
+
+dubbo:
+  registry:
+    address: zookeeper://47.105.238.105:2181
+---
+
+spring:
+  profiles: produce
+  cloud:
+    nacos:
+      config:
+        server-addr: 192.168.15.21:8848
+        file-extension: yml
+dubbo:
+  registry:
+    address: zookeeper://10.190.30.125:2181
